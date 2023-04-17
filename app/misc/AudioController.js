@@ -76,7 +76,7 @@ export const selectAudio = async (audio, context, playListInfo = {}) => {
         ...playListInfo,
       });
       playbackObj.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
-      //return storeAudioForNextOpening(audio, index);
+      return storeAudioForNextOpening(audio, index);
     }
 
     // pause audio
@@ -116,7 +116,7 @@ export const selectAudio = async (audio, context, playListInfo = {}) => {
         activePlayList: [],
         ...playListInfo,
       });
-      //return storeAudioForNextOpening(audio, index);
+      return storeAudioForNextOpening(audio, index);
     }
   } catch (error) {
     console.log('error inside select audio method.', error.message);
@@ -124,7 +124,12 @@ export const selectAudio = async (audio, context, playListInfo = {}) => {
 };
 
 const selectAudioFromPlayList = async (context, select) => {
-  const { activePlayList, currentAudio, audioFiles, playbackObj, updateState } =
+  const { 
+    activePlayList,
+    currentAudio,
+    audioFiles,
+    playbackObj,
+    updateState } =
     context;
   let audio;
   let defaultIndex;
@@ -166,6 +171,8 @@ export const changeAudio = async (context, select) => {
     audioFiles,
     updateState,
     isPlayListRunning,
+    storeAudioForNextOpening,
+    onPlaybackStatusUpdate
   } = context;
 
   if (isPlayListRunning) return selectAudioFromPlayList(context, select);
@@ -238,7 +245,7 @@ export const changeAudio = async (context, select) => {
     });
     storeAudioForNextOpening(audio, index);
   } catch (error) {
-    console.log('error inside cahnge audio method.', error.message);
+    console.log('error inside change audio method.', error.message);
   }
 };
 

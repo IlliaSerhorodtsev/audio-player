@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {View,StyleSheet,Text,Dimensions} from 'react-native';
 import Screen from '../components/Screen';
 import color from "../misc/color";
@@ -20,18 +20,25 @@ import { convertTime, storeAudioForNextOpening } from "../misc/helper";
 const { width } = Dimensions.get('window');
 
 const Player = () => {
-    const context =useContext(AudioContext)
-    const {playbackPosition,playbackDuration} = context
-    
+    const context = useContext(AudioContext)
+    const {playbackPosition,playbackDuration,currentAudio} = context
+    const [currentPosition, setCurrentPosition] = useState(0)
+
     const calculateSeebBar = () =>{
         if(playbackPosition !== null && playbackDuration !==null){
             return playbackPosition / playbackDuration;
         }
+
+        if(currentAudio.lastPosition){
+          return currentAudio.lastPosition / (currentAudio.duration * 1000)
+        }
+
         return 0
     }
 
     useEffect(() => {
         context.loadPreviousAudio()
+
     }, [])
 
     const handlePlayPause = async () => {
@@ -50,6 +57,9 @@ const Player = () => {
     }
 
     const renderCurrentTime = () =>{
+      if(!context.soundObj && currentAudio.lastPosition){
+        return convertTime(currentAudio.lastPosition/1000)
+      }
        return convertTime(context.playbackPosition/1000)
     }
 
@@ -57,7 +67,17 @@ const Player = () => {
 
     return <Screen >
         <View style={styles.container}> 
-            <Text style={styles.audioCount}>{`${context.currentAudioIndex + 1}/${context.totalAudioCount}`}</Text>
+            <View style={styles.audioCountContainer}>
+            <View style={{flexDirection:'row'}}>
+              {context.isPlayListRunning && (
+              <>
+              <Text style={{fontWeight:'bold'}} >From Playlist</Text>
+              <Text>{context.activePlayList.title}</Text>
+              </>
+              )}
+               </View>
+              <Text style={styles.audioCount}>{`${context.currentAudioIndex + 1}/${context.totalAudioCount}`}</Text>
+            </View>
             <View style={styles.midBannerContainer}>
                 <MaterialCommunityIcons
                 name='music-circle'
@@ -71,7 +91,7 @@ const Player = () => {
                 </Text>
                 <View style={{flexDirection:'row', justifyContent:'space-between', paddingHorizontal:15,}}>
                     <Text>{convertTime(context.currentAudio.duration)}</Text>
-                    <Text>{renderCurrentTime()}</Text>
+                    <Text>{currentPosition ? currentPosition : renderCurrentTime()}</Text>
                 </View>
                 <Slider
                     style={{width:width,height:40}}
@@ -80,6 +100,20 @@ const Player = () => {
                     value = {calculateSeebBar()}
                     minimumTrackTintColor={color.FONT_MEDIUM}
                     maximumTrackTintColor={color.ACTIVE_BG}
+                    onValueChange={(value)=>{
+                      setCurrentPosition(convertTime(value *context.currentAudio.duration ))
+                    }}
+                    onSlidingStart={async ()=>{
+                        if(!context.isPlaying)return
+                        try {
+                          await pause(context.playbackObj)
+                        } catch (error) {
+                            console.log('error inside onSlidingStart callback',error)
+                        }
+                      }
+                    }
+                    onSlidingComplete={async value => {await moveAudio(context,value)
+                    setCurrentPosition(0)}}
                 />
                 <View style={styles.audioControllers}>
                     <PlayerButton iconType='PREV' onPress={handlePrevious} />

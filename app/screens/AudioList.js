@@ -125,6 +125,13 @@ export class AudioList extends Component{
                 }
         }/>
     }
+    navigateToPlaylist = () => {
+        this.context.updateState(this.context, {
+          addToPlayList: this.currentItem,
+        });
+        this.props.navigation.navigate('PlayList');
+      };
+      
     render(){
        return <AudioContext.Consumer>
         {({dataProvider, isPlaying})=>{
@@ -135,18 +142,26 @@ export class AudioList extends Component{
              layoutProvider={this.layoutProvider}
              rowRenderer={this.rowRenderer}
              extendedState={{isPlaying}}/>
-             <OptionModal 
-              onPlayPress={()=>{}}
-              onPlayListPress={() => {
-                this.context.updateState(this.context,{
-                    addToPlayList: this.currentItem
-                })
-              }}
-              currentItem={this.currentItem}
-              onClose={()=> this.setState({...this.state,optionModalVisible:false})} 
-              
-               
-              visible={this.state.optionModalVisible}/>
+             <OptionModal
+                // onPlayPress={() => console.log('Playig audio')}
+                // onPlayListPress={() => {
+                //   this.context.updateState(this.context, {
+                //     addToPlayList: this.currentItem,
+                //   });
+                //   this.props.navigation.navigate('PlayList');
+                // }}
+                options={[
+                  {
+                    title: 'Add to playlist',
+                    onPress: this.navigateToPlaylist,
+                  },
+                ]}
+                currentItem={this.currentItem}
+                onClose={() =>
+                  this.setState({ ...this.state, optionModalVisible: false })
+                }
+                visible={this.state.optionModalVisible}
+              />
             </Screen> 
         }}
        </AudioContext.Consumer>
